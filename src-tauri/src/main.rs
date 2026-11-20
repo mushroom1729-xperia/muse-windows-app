@@ -1,9 +1,25 @@
 // Prevents an extra console window on Windows in release builds.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::io::Write;
 use tauri::webview::{NewWindowResponse, WebviewWindowBuilder};
-use tauri::{AppHandle, Url, WebviewUrl};
-use tauri_plugin_shell::ShellExt;
+use tauri::{Url, WebviewUrl};
+
+const LOG_PATH: &str = "C:\\Users\\mushroom\\muse-work\\muse-link-log.txt";
+
+fn log_line(msg: &str) {
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(LOG_PATH)
+    {
+        let _ = writeln!(f, "[{ts}] {msg}");
+    }
+}
 
 // Hosts that must stay inside the app: Muse itself and the sign-in flow.
 fn is_internal(url: &Url) -> bool {
@@ -26,16 +42,34 @@ fn is_internal(url: &Url) -> bool {
         .any(|d| host == *d || host.ends_with(&format!(".{d}")))
 }
 
-fn open_external(app: &AppHandle, url: &Url) {
-    let _ = app.shell().open(url.as_str(), None);
+// Open a URL in the default browser via the Windows file-protocol handler.
+fn open_external(url: &Url) {
+    let u = url.as_str();
+    match std::process::Command::new("rundll32.exe")
+        .args(["url.dll,FileProtocolHandler", u])
+        .spawn()
+    {
+        Ok(_) => log_line(&format!("open ok: {u}")),
+        Err(e) => log_line(&format!("open FAILED: {u} err={e}")),
+    }
 }
+
+// Links with target="_blank" would otherwise die silently in WebView2.
+// Force them into a top-level navigation so the navigation handler below
+// can route external ones to the default browser.
+const INIT_SCRIPT: &str = r#"
+document.addEventListener('click', function (e) {
+  var a = e.target && e.target.closest ? e.target.closest('a') : null;
+  if (a && a.target === '_blank' && a.href) {
+    e.preventDefault();
+    window.location.href = a.href;
+  }
+}, true);
+"#;
 
 fn main() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
-            let nav_handle = app.handle().clone();
-            let win_handle = app.handle().clone();
             WebviewWindowBuilder::new(
                 app,
                 "main",
@@ -45,17 +79,20 @@ fn main() {
             .inner_size(1100.0, 760.0)
             .min_inner_size(720.0, 480.0)
             .center()
-            .on_navigation(move |url| {
+            .initialization_script(INIT_SCRIPT)
+            .on_navigation(|url| {
                 if is_internal(url) {
                     true
                 } else {
-                    open_external(&nav_handle, url);
+                    log_line(&format!("navigation intercepted: {}", url.as_str()));
+                    open_external(url);
                     false
                 }
             })
-            .on_new_window(move |url, _features| {
+            .on_new_window(|url, _features| {
+                log_line(&format!("new-window intercepted: {}", url.as_str()));
                 if !is_internal(&url) {
-                    open_external(&win_handle, &url);
+                    open_external(&url);
                 }
                 NewWindowResponse::Deny
             })
