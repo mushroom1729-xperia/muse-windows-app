@@ -1,1 +1,1 @@
-{"$schema":"https://schema.tauri.app/config/2","app":{"security":{"csp":null}},"build":{"frontendDist":"../dist"},"bundle":{"active":true,"icon":["icons/icon.png","icons/icon.ico"],"targets":["nsis"]},"identifier":"com.mushroom.musewindows","productName":"Muse","version":"0.1.3"}
+{"$schema":"https://schema.tauri.app/config/2","app":{"security":{"csp":null}},"build":{"frontendDist":"../dist"},"bundle":{"active":true,"icon":["icons/icon.png","icons/icon.ico"],"targets":["nsis"]},"identifier":"com.mushroom.musewindows","productName":"Muse","version":"0.1.4"}
