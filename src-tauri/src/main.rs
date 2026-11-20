@@ -54,19 +54,6 @@ fn open_external(url: &Url) {
     }
 }
 
-// Links with target="_blank" would otherwise die silently in WebView2.
-// Force them into a top-level navigation so the navigation handler below
-// can route external ones to the default browser.
-const INIT_SCRIPT: &str = r#"
-document.addEventListener('click', function (e) {
-  var a = e.target && e.target.closest ? e.target.closest('a') : null;
-  if (a && a.target === '_blank' && a.href) {
-    e.preventDefault();
-    window.location.href = a.href;
-  }
-}, true);
-"#;
-
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
@@ -79,7 +66,6 @@ fn main() {
             .inner_size(1100.0, 760.0)
             .min_inner_size(720.0, 480.0)
             .center()
-            .initialization_script(INIT_SCRIPT)
             .on_navigation(|url| {
                 if is_internal(url) {
                     true
@@ -90,10 +76,14 @@ fn main() {
                 }
             })
             .on_new_window(|url, _features| {
+                // Anything the page tries to open as a new window (links with
+                // target="_blank", window.open) goes to the default browser
+                // instead — including internal destinations such as the Meta
+                // Account Center, which is a standalone page, not part of the
+                // in-app sign-in flow (that flow navigates the main frame and
+                // is handled by on_navigation above).
                 log_line(&format!("new-window intercepted: {}", url.as_str()));
-                if !is_internal(&url) {
-                    open_external(&url);
-                }
+                open_external(&url);
                 NewWindowResponse::Deny
             })
             .build()?;

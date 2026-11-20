@@ -1,6 +1,6 @@
 [package]
 name = "muse-windows-app"
-version = "0.1.2"
+version = "0.1.3"
 description = "Lightweight Muse client for Windows (WebView2 wrapper)"
 authors = ["mushroom1729-xperia"]
 edition = "2021"
