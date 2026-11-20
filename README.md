@@ -1,30 +1,23 @@
 # Muse for Windows
 
-A lightweight Windows client for [Muse](https://muse.ai).
+[Muse](https://muse.ai) を Windows で使うための軽量クライアントです。
 
-There is no official Muse app for Windows (only a Mac app), so this is a
-minimal wrapper built with [Tauri](https://tauri.app) on top of the WebView2
-runtime that ships with Windows. No bundled Chromium, no Electron — the app
-shell itself is just a few MB and stays light on memory.
+Muse に公式の Windows アプリはない（Mac アプリのみ）ため、[Tauri](https://tauri.app) と Windows 標準の WebView2 ランタイムで作った最小構成のラッパーです。Chromium や Electron を同梱しないので、アプリ本体は数 MB で、メモリ使用量も軽めです。
 
-## Download
+## ダウンロード
 
-Grab the latest build from the
-[Releases](https://github.com/mushroom1729-xperia/muse-windows-app/releases)
-page:
+最新版は [Releases](https://github.com/mushroom1729-xperia/muse-windows-app/releases) から：
 
-- `Muse_<version>_x64-setup.exe` — installer
-- `Muse-portable-<version>.exe` — portable, no install needed
+- `Muse_<バージョン>_x64-setup.exe` — インストーラー
+- `Muse-portable-<バージョン>.exe` — ポータブル版（インストール不要）
 
-Requires the Microsoft Edge WebView2 runtime (preinstalled on Windows 11 and
-on Windows 10 machines with Edge).
+Microsoft Edge WebView2 ランタイムが必要です（Windows 11 と、Edge の入った Windows 10 には標準で入っています）。
 
-## Build
+## ビルド
 
-Builds run on GitHub Actions (`.github/workflows/build.yml`) and publish a
-draft release with the installer and the portable exe.
+GitHub Actions（`.github/workflows/build.yml`）でビルドし、インストーラーとポータブル版を下書きリリースに公開します。
 
-## Credits
+## クレジット
 
-- Author / creator: [mushroom1729-xperia](https://github.com/mushroom1729-xperia)
-- Co-developed with AI (Muse)
+- 作者： [mushroom1729-xperia](https://github.com/mushroom1729-xperia)
+- AI（Muse）との共同開発
